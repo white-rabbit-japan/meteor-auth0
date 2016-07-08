@@ -1,6 +1,6 @@
-import { Meteor } from 'meteor/meteor';
-import { Accounts } from 'meteor/accounts-base';
-import { _ } from 'meteor/underscore';
+import {Meteor} from 'meteor/meteor';
+import {Accounts} from 'meteor/accounts-base';
+import {_} from 'meteor/underscore';
 
 import './auth0-lock-common';
 
@@ -29,8 +29,17 @@ export const loginHandler = (options) => {
   // Accounts.updateOrCreateUserFromExternalService
   // expects the unique user id to be stored in the 'id'
   // property of serviceData.
-  const { profile } = options.auth0;
+  const {profile} = options.auth0;
   profile.id = profile.user_id;
+
+  // Run the Accounts method to store the profile and
+  // optional data (token) in Meteor users collection.
+  //merge id into user document if user already exists
+  if (profile.app_metadata && profile.app_metadata.WREMeteorUserId) {
+    Users.update(profile.app_metadata.WREMeteorUserId, {
+      $set: {'services.auth0.id': profile.user_id}
+    });
+  }
 
   // Run the Accounts method to store the profile and
   // optional data (token) in Meteor users collection.
